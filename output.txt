@@ -1,0 +1,97 @@
+========================================
+High-Performance Limit Order Book
+Lock-free | Zero-allocation | Low-latency
+========================================
+
+=== Simple Order Book Example ===
+Best Bid: 999 (100 shares)
+Best Ask: 1001 (100 shares)
+
+Adding marketable buy order: price=101.00, qty=150
+After match:
+Best Bid: 1001 (50 shares)
+Best Ask: 1002 (250 shares)
+Total matches: 1
+
+Cancelling order ID 2
+Best Bid after cancel: 1001 (50 shares)
+
+=== SPSC Ring Buffer Example ===
+Buffer capacity: 15
+Pushed order 1
+Pushed order 2
+Pushed order 3
+Pushed order 4
+Pushed order 5
+Buffer size: 5
+Popped order 1 at price 1000
+Popped order 2 at price 1000
+Popped order 3 at price 1000
+Popped order 4 at price 1000
+Popped order 5 at price 1000
+Buffer empty: yes
+
+=== Market Data Feed Simulation ===
+Market feed started...
+Matching engine started...
+Market feed completed: 1000 orders sent
+  Processed 250 orders | Bid: 999 | Ask: 1001.1 | Active: 250 | Matches: 0
+  Processed 500 orders | Bid: 999 | Ask: 1001.1 | Active: 500 | Matches: 0
+  Processed 750 orders | Bid: 999 | Ask: 1001.1 | Active: 750 | Matches: 0
+  Processed 1000 orders | Bid: 999 | Ask: 1001.1 | Active: 1000 | Matches: 0
+Matching engine completed: 1000 orders processed
+
+=== Final Statistics ===
+Orders sent: 1000
+Orders received: 1000
+Total matches: 0
+Active orders in book: 1000
+Best bid: 999 (3000 shares)
+Best ask: 1001.1 (3010 shares)
+
+=== Performance Benchmark ===
+Configuration:
+  Max concurrent orders: 100000
+  Ring buffer size: 8192
+  Test orders: 50000
+  Order size: 64 bytes
+  Cache line size: 64 bytes
+Starting benchmark with 50000 orders...
+
+========================================
+         BENCHMARK RESULTS
+========================================
+
+Orders processed: 50000
+Total matches: 0
+Active orders: 30002
+
+=== Overall Latency ===
+Samples:  50000
+Min:      0 ns
+Mean:     34 ns
+p50:      41 ns
+p95:      83 ns
+p99:      125 ns
+Max:      27792 ns
+
+=== Add Order Latency ===
+Samples:  40001
+Min:      0 ns
+Mean:     35 ns
+p50:      41 ns
+p95:      83 ns
+p99:      125 ns
+Max:      27792 ns
+
+=== Cancel Order Latency ===
+Samples:  9999
+Min:      0 ns
+Mean:     29 ns
+p50:      41 ns
+p95:      83 ns
+p99:      125 ns
+Max:      1458 ns
+
+========================================
+
