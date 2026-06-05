@@ -60,6 +60,10 @@ A lock-free, low-latency limit order book implementation in modern C++ (C++17) d
 - CMake 3.15 or later
 - POSIX threads library
 
+### Presentation UI
+
+Run `python3 run_ui.py`, then open `http://127.0.0.1:8000` in a browser to use the classroom demo interface. It includes a local market-data proxy that tries Yahoo Finance chart data first, falls back to generated ticks if the endpoint is unavailable, and replays those ticks through an interactive order book dashboard.
+
 ### Compilation
 
 ```bash

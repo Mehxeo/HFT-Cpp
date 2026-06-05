@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>High-Performance Limit Order Book UI</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">Personal Project Demo</p>
+          <h1>High-Performance Limit Order Book</h1>
+        </div>
+        <div class="status-strip" aria-label="System status">
+          <span><strong id="processedCount">0</strong> orders</span>
+          <span><strong id="matchCount">0</strong> matches</span>
+          <span><strong id="activeCount">0</strong> active</span>
+        </div>
+      </header>
+
+      <section class="market-overview" aria-label="Market overview">
+        <article class="quote-tile bid-tile">
+          <span>Best Bid</span>
+          <strong id="bestBid">$0.00</strong>
+          <small id="bestBidQty">0 shares</small>
+        </article>
+        <article class="quote-tile mid-tile">
+          <span>Spread</span>
+          <strong id="spread">$0.00</strong>
+          <small id="symbolLabel">AAPL</small>
+        </article>
+        <article class="quote-tile ask-tile">
+          <span>Best Ask</span>
+          <strong id="bestAsk">$0.00</strong>
+          <small id="bestAskQty">0 shares</small>
+        </article>
+        <article class="quote-tile latency-tile">
+          <span>Benchmark p99</span>
+          <strong>125 ns</strong>
+          <small>from output.txt</small>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <aside class="control-panel" aria-label="Order entry">
+          <div class="panel-header">
+            <h2>Order Entry</h2>
+            <div class="symbol-tabs" role="tablist" aria-label="Symbols">
+              <button class="symbol-tab is-active" data-symbol="AAPL" type="button">AAPL</button>
+              <button class="symbol-tab" data-symbol="TSLA" type="button">TSLA</button>
+              <button class="symbol-tab" data-symbol="NVDA" type="button">NVDA</button>
+            </div>
+          </div>
+
+          <form id="orderForm" class="order-form">
+            <label>
+              Side
+              <span class="segmented">
+                <input type="radio" name="side" value="BUY" checked>
+                <span>Buy</span>
+                <input type="radio" name="side" value="SELL">
+                <span>Sell</span>
+              </span>
+            </label>
+            <label>
+              Price
+              <input id="priceInput" name="price" type="number" min="1" step="0.01" value="1001.00">
+            </label>
+            <label>
+              Quantity
+              <input id="quantityInput" name="quantity" type="number" min="1" step="10" value="100">
+            </label>
+            <div class="button-row">
+              <button class="primary-button" type="submit">Submit Order</button>
+              <button class="ghost-button" id="autoFeedButton" type="button">Start Feed</button>
+            </div>
+          </form>
+
+          <div class="cancel-box">
+            <label for="cancelInput">Cancel Order ID</label>
+            <div class="cancel-row">
+              <input id="cancelInput" type="number" min="1" placeholder="101">
+              <button class="icon-button" id="cancelButton" type="button" title="Cancel order" aria-label="Cancel order">X</button>
+            </div>
+          </div>
+
+          <div class="quick-actions" aria-label="Quick actions">
+            <button id="resetButton" type="button">Refresh Data</button>
+            <button id="scenarioButton" type="button">Replay Ticks</button>
+          </div>
+        </aside>
+
+        <section class="book-panel" aria-label="Order book">
+          <div class="panel-header">
+            <h2>Live Order Book</h2>
+            <span id="engineState" class="state-pill">idle</span>
+          </div>
+          <div class="book-grid">
+            <div class="book-side">
+              <div class="book-heading">
+                <span>Bid Price</span>
+                <span>Qty</span>
+                <span>Orders</span>
+              </div>
+              <div id="bidRows" class="book-rows bid-rows"></div>
+            </div>
+            <div class="book-side">
+              <div class="book-heading">
+                <span>Ask Price</span>
+                <span>Qty</span>
+                <span>Orders</span>
+              </div>
+              <div id="askRows" class="book-rows ask-rows"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="activity-panel" aria-label="Trading activity">
+          <div class="panel-header">
+            <h2>Matching Tape</h2>
+            <span class="state-pill" id="lastLatency">0 us</span>
+          </div>
+          <ol id="tape" class="tape"></ol>
+        </section>
+      </section>
+
+      <section class="presentation-grid">
+        <article class="architecture-panel">
+          <div class="panel-header">
+            <h2>Engine Architecture</h2>
+          </div>
+          <div class="pipeline">
+            <div class="pipe-node">
+              <strong>Market Feed</strong>
+              <span>producer thread</span>
+            </div>
+            <div class="pipe-line"></div>
+            <div class="pipe-node">
+              <strong>SPSC Ring Buffer</strong>
+              <span>lock-free queue</span>
+            </div>
+            <div class="pipe-line"></div>
+            <div class="pipe-node">
+              <strong>Matching Engine</strong>
+              <span>price-time priority</span>
+            </div>
+            <div class="pipe-line"></div>
+            <div class="pipe-node">
+              <strong>Memory Pool</strong>
+              <span>zero allocation path</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="performance-panel">
+          <div class="panel-header">
+            <h2>Latency Profile</h2>
+          </div>
+          <div class="latency-chart" aria-label="Latency benchmark chart">
+            <div class="latency-row">
+              <span>Mean</span>
+              <div><i style="width: 28%"></i></div>
+              <strong>34 ns</strong>
+            </div>
+            <div class="latency-row">
+              <span>p50</span>
+              <div><i style="width: 33%"></i></div>
+              <strong>41 ns</strong>
+            </div>
+            <div class="latency-row">
+              <span>p95</span>
+              <div><i style="width: 66%"></i></div>
+              <strong>83 ns</strong>
+            </div>
+            <div class="latency-row">
+              <span>p99</span>
+              <div><i style="width: 100%"></i></div>
+              <strong>125 ns</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="talking-panel">
+          <div class="panel-header">
+            <h2>Presentation Notes</h2>
+          </div>
+          <ul>
+            <li>Orders are stored in fixed-size, cache-aligned structs.</li>
+            <li>The ring buffer separates ingestion from matching without locks.</li>
+            <li>Price-time priority matches best price first, then oldest order.</li>
+            <li>The memory pool avoids unpredictable allocation latency.</li>
+          </ul>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -35,3 +35,6 @@ perf.data*
 callgrind.out.*
 *.gcda
 *.gcno
+
+# Python helper cache
+__pycache__/
